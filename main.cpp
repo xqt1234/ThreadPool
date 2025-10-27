@@ -8,9 +8,10 @@ int add(int a,int b)
     return a + b;
 }
 
-void addnum(int a ,int b)
+void show(int a,int b)
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::cout << "a = " << a << " b = "<< b << std::endl;
     std::cout << "任务执行完毕" << std::endl;
 }
 int main()
@@ -18,7 +19,7 @@ int main()
     ThreadPool pool(2,5,10);
     for(int i = 0;i < 2;++i)
     {
-        pool.addTask(addnum,1,2);
+        pool.addTask(show,1,2);
     }
     
     std::cout << "等待2秒执行" << std::endl;
@@ -32,8 +33,24 @@ int main()
     {
         std::cout << "没有执行" << std::endl;
     }
+    int a = 10;
+    int b = 20;
+    pool.addTask([&](){
+        std::this_thread::sleep_for(std::chrono::seconds(4));
+        std::cout << "lambda: " << "a = " << a << " b = "<< b << std::endl;
+    });
+
+    auto t2 = pool.addTask([&](){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        return a + b;
+    });
+    if(t2)
+    {
+        int res = t2->get();
+        std::cout << "lambda2: " << "t2 = " << res << std::endl;
+    }
     std::cout << "程序都结束了，还没有执行吗？" << std::endl;
     std::cout << "睡个5秒"<< std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //std::this_thread::sleep_for(std::chrono::seconds(5));
     return 0;
 }

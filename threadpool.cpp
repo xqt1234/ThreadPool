@@ -4,14 +4,10 @@
 ThreadPool::ThreadPool(int baseThreadNum, int maxThreadNum, int maxTaskNum)
     : m_initThread(baseThreadNum), m_maxThread(maxThreadNum), m_maxTask(maxTaskNum), m_idleThread(baseThreadNum), m_ThreadNum(baseThreadNum)
 {
-    std::cout << "初始线程数量:" << m_initThread
-              << "最大线程数量:" << m_maxThread
-              << "最大任务数量:" << m_maxTask << std::endl;
     m_managerThread = new std::thread(&ThreadPool::manager, this);
     for (int i = 0; i < m_initThread; ++i)
     {
         auto newThread = std::make_unique<std::thread>(&ThreadPool::worker, this);
-        std::cout << "初始创建新线程" << newThread->get_id() << std::endl;
         m_threadMap[newThread->get_id()] = std::move(newThread);
     }
 }
@@ -26,7 +22,6 @@ ThreadPool::~ThreadPool()
         if (threadptr && threadptr->joinable())
         {
             threadptr->join();
-            std::cout << "线程析构" << id << "退出" << std::endl;
         }
     }
     m_managerCv.notify_one();
@@ -49,7 +44,6 @@ void ThreadPool::addTask(std::function<void()> f)
         else
         {
             m_taskQue.emplace(f);
-            std::cout << "添加任务成功" << std::endl;
         }
     }
     m_taskCv.notify_one();
@@ -75,7 +69,6 @@ void ThreadPool::worker()
                     task = std::move(m_taskQue.front());
                     m_taskQue.pop();
                     m_idleThread--;
-                    std::cout << "取走一个任务" << std::endl;
                 }
             }
         }
@@ -128,7 +121,6 @@ void ThreadPool::checkthread()
         for (int i = 0; i < 1; ++i)
         {
             auto newThread = std::make_unique<std::thread>(&ThreadPool::worker, this);
-            std::cout << "动态创建新线程" << newThread->get_id() << std::endl;
             m_threadMap[newThread->get_id()] = std::move(newThread);
             m_ThreadNum++;
             m_idleThread++;
