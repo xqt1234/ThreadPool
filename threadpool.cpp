@@ -118,7 +118,8 @@ void ThreadPool::checkthread()
     if (tasknum > 0)
     {
         std::lock_guard<std::mutex> lock(m_threadmapMtx);
-        for (int i = 0; i < 1; ++i)
+        //这里根据情况，是缓创建线程还是一下子创建多个
+        for (int i = 0; i < tasknum; ++i)
         {
             auto newThread = std::make_unique<std::thread>(&ThreadPool::worker, this);
             m_threadMap[newThread->get_id()] = std::move(newThread);
