@@ -105,7 +105,7 @@ void ThreadPool::checkthread()
 {
     // 这里容易出问题，一下子添加100个，但是，线程还没有从任务队列中取数据，
     //  所以就会出现有空闲线程，但是，任务却堆积在队列中的情况。
-    // 这里改为根据任务数量新建线程。
+    // 这里改为根据任务数量新建线程,解决了这个问题
     std::cout << m_idleThread << " " << m_ThreadNum << " " << m_maxThread << std::endl;
     int tasknum = 0;
     if (m_ThreadNum < m_maxThread)
@@ -131,6 +131,8 @@ void ThreadPool::checkthread()
 
 void ThreadPool::manager()
 {
+    //这里管理线程定时回收线程。加锁只是为了能够快速析构。不需要在线程内部唤醒
+    //因为无所谓，慢慢回收就是了
     while (!m_stop.load())
     {
         std::unique_lock<std::mutex> lock(m_idsMtx);
